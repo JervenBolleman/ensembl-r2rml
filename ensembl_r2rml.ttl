@@ -1,0 +1,161 @@
+PREFIX rr: <http://www.w3.org/ns/r2rml#>
+PREFIX uniprotkb: <http://purl.uniprot.org/uniprot/>
+PREFIX up: <http://purl.uniprot.org/core/>
+PREFIX ensembltranscript: <http://rdf.ebi.ac.uk/resource/ensembl.transcript/>
+PREFIX ensemblterms: <http://rdf.ebi.ac.uk/terms/ensembl/>
+PREFIX ensemblprotein: <http://rdf.ebi.ac.uk/resource/ensembl.protein/>
+PREFIX ensemblexon: <http://rdf.ebi.ac.uk/resource/ensembl.exon/>
+PREFIX ensembl: <http://rdf.ebi.ac.uk/resource/ensembl/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX faldo: <http://biohackathon.org/resource/faldo#>
+PREFIX SO: <http://purl.obolibrary.org/obo/SO_000>
+PREFIX so: <http://purl.obolibrary.org/obo/so#>
+PREFIX sio: <http://semanticscience.org/resource/>
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+
+<#EnsemblExon>
+    rr:logicalTable [ rr:tableName "exon" ];
+    rr:subjectMap [
+        rr:template "http://rdf.ebi.ac.uk/resource/ensembl.exon/{stable_id}" ;
+        rr:class <http://purl.obolibrary.org/obo/SO_0000147>
+    ] ;
+    rr:predicateObjectMap [
+        rr:predicate rdfs:label ;
+        rr:objectMap [ rr:template "{stable_id}" ; rr:termType rr:Literal ]
+    ] .
+
+<#UniProtXrefView> rr:sqlQuery """
+SELECT
+    xref.dbprimary_acc AS acc ,
+    translation.stable_id AS id
+FROM xref
+INNER JOIN object_xref ON object_xref.xref_id=xref.xref_id
+INNER JOIN translation ON object_xref.ensembl_id=translation.translation_id
+WHERE
+    xref.external_db_id = 2000
+    AND
+    object_xref.ensembl_object_type = 'Translation'
+""" .
+
+<#UniProtXrefToEnsembl>
+    rr:logicalTable <#UniProtXrefView> ;
+    rr:subjectMap [
+        rr:template "http://purl.uniprot.org/uniprot/{acc}";
+        rr:class up:Protein 
+    ] ;
+    rr:predicateObjectMap [
+        rr:predicate rdfs:seeAlso ;
+        rr:objectMap [ rr:template "http://rdf.ebi.ac.uk/resource/ensembl.protein/{id}"  ; rr:termType rr:IRI ]
+    ] .
+
+<#EnsemblXrefToUniProt>
+    rr:logicalTable <#UniProtXrefView> ;
+    rr:subjectMap [
+        rr:template "http://rdf.ebi.ac.uk/resource/ensembl.protein/{id}"
+    ] ;
+    rr:predicateObjectMap [
+        rr:predicate rdfs:seeAlso ;
+        rr:objectMap [ rr:template "http://purl.uniprot.org/uniprot/{acc}" ; rr:termType rr:IRI ]
+    ] .
+
+<#EnsemblTranslation>
+    rr:logicalTable [ rr:tableName "translation" ] ;
+    rr:subjectMap [
+        rr:template "http://rdf.ebi.ac.uk/resource/ensembl.protein/{stable_id}" ;
+        rr:class ensemblterms:protein
+    ] ;
+    rr:predicateObjectMap [
+        rr:predicate rdfs:label ;
+        rr:objectMap [ rr:template "{stable_id}" ; rr:termType rr:Literal ]
+    ] .
+
+<#EnsemblTranscript>
+    rr:logicalTable [ rr:tableName "transcript" ] ;
+    rr:subjectMap [
+        rr:template "http://rdf.ebi.ac.uk/resource/ensembl.transcript/{stable_id}" ;
+        rr:class SO:0234
+    ] ;
+    rr:predicateObjectMap [
+        rr:predicate rdfs:label ;
+        rr:objectMap [ rr:template "{stable_id}" ; rr:termType rr:Literal ]
+    ] ;
+    rr:predicateObjectMap [
+        rr:predicate rdfs:comment ;
+        rr:objectMap [ rr:template "{description}" ; rr:termType rr:Literal ]
+    ] ;
+    rr:predicateObjectMap [
+        rr:predicate rdf:type  ;
+        rr:objectMap [ rr:template "http://rdf.ebi.ac.uk/terms/ensembl/{biotype}" ; rr:termType rr:IRI ]
+#    ] ;
+#    rr:predicateObjectMap [
+#        rr:predicate so:has_part ;
+#        rr:objectMap [
+#            rr:parentTriplesMap <#EnsemblExonTranscript> ;
+#            rr:joinCondition [
+#                rr:child "transcript_id";
+#                rr:parent "exon_id";
+#            ];
+#        ]
+    ] .
+
+# <http://rdf.ebi.ac.uk/resource/ensembl.transcript/ENSAPOT00000022055> sio:SIO_000974 <http://rdf.ebi.ac.uk/resource/ensembl.transcript/ENSAPOT00000022055#Exon_3> .
+# <http://rdf.ebi.ac.uk/resource/ensembl.transcript/ENSAPOT00000022055#Exon_3> rdf:type sio:SIO_001261 .
+# <http://rdf.ebi.ac.uk/resource/ensembl.transcript/ENSAPOT00000022055#Exon_3> sio:SIO_000628 <http://rdf.ebi.ac.uk/resource/ensembl.exon/ENSAPOE00000079685> .
+# <http://rdf.ebi.ac.uk/resource/ensembl.transcript/ENSAPOT00000022055#Exon_3> sio:SIO_000300 3 .
+
+
+<#EnsemblExonTranscript>
+    rr:logicalTable [ rr:sqlQuery """SELECT
+            transcript.stable_id AS id,
+            exon_transcript.rank AS rank
+FROM exon_transcript
+INNER JOIN transcript ON exon_transcript.transcript_id=transcript.transcript_id
+"""
+ ] ;
+    rr:subjectMap [
+        rr:template "http://rdf.ebi.ac.uk/resource/ensembl.transcript/{id}#Exon_{rank}" ;
+        rr:class sio:SIO_001261
+    ] ;
+    rr:predicateObjectMap [
+        rr:predicate so:SIO_000300 ;
+        rr:objectMap [ rr:template "{rank}" ; rr:termType rr:Literal ]
+    ] .
+
+<#EnsemblGene>
+    rr:logicalTable [ rr:sqlQuery """SELECT
+    gene.stable_id AS stable_id,
+    gene.description AS description,
+    gene.biotype AS biotype,
+    CASE
+        WHEN biotype = 'protein_coding' THEN 'http://purl.obolibrary.org/obo/SO_0001217'
+        WHEN biotype = 'miRNA' THEN 'http://purl.obolibrary.org/obo/SO_0000276'
+        WHEN biotype = 'misc_RNA' THEN 'http://ensembl.org/glossary/ENSGLOSSARY_0000046'
+        WHEN biotype = 'piRNA' THEN 'http://purl.obolibrary.org/obo/SO_0001035'
+        WHEN biotype = 'rRNA' THEN 'http://purl.obolibrary.org/obo/SO_0000252'
+        WHEN biotype = 'sRNA' THEN 'http://purl.obolibrary.org/obo/SO_0000673'
+        WHEN biotype = 'snRNA' THEN 'http://purl.obolibrary.org/obo/SO_0000274'
+        WHEN biotype = 'siRNA' THEN 'http://purl.obolibrary.org/obo/SO_0001035'
+        WHEN biotype = 'snoRNA' THEN 'http://purl.obolibrary.org/obo/SO_0000275'
+        WHEN biotype = 'scaRNA' THEN 'http://purl.obolibrary.org/obo/SO_0002095'
+        WHEN biotype = 'tRNA' THEN 'http://purl.obolibrary.org/obo/SO_0000253'
+        WHEN biotype = 'ribozyme' THEN 'http://purl.obolibrary.org/obo/SO_0000374'
+        WHEN biotype = 'processed_pseudogene' THEN 'http://ensembl.org/glossary/ENSGLOSSARY_0000048'
+        WHEN biotype = 'pseudogene' THEN 'http://purl.obolibrary.org/obo/SO_0000336'
+        WHEN biotype = 'TR_C_gene' THEN 'http://purl.obolibrary.org/obo/SO_0002134'
+        WHEN biotype = 'TR_D_gene' THEN 'http://purl.obolibrary.org/obo/SO_0002135'
+        WHEN biotype = 'TR_J_gene' THEN 'http://purl.obolibrary.org/obo/SO_0002136'
+        WHEN biotype = 'TR_V_gene' THEN 'http://purl.obolibrary.org/obo/SO_0002137'
+        WHEN biotype = 'IG_C_gene' THEN 'http://purl.obolibrary.org/obo/SO_0002123'
+        WHEN biotype = 'IG_D_gene' THEN 'http://purl.obolibrary.org/obo/SO_0002124'
+        WHEN biotype = 'IG_J_gene' THEN 'http://purl.obolibrary.org/obo/SO_0002125'
+        WHEN biotype = 'IG_V_gene' THEN 'http://purl.obolibrary.org/obo/SO_0002126'
+    END rdfbiotype
+    FROM gene
+    """ ] ;
+    rr:subjectMap [
+        rr:template "http://rdf.ebi.ac.uk/resource/ensembl/{stable_id}"
+    ] ;
+    rr:predicateObjectMap [
+        rr:predicate dc:description ;
+        rr:objectMap [ rr:template "{description}" ; rr:termType rr:Literal ]
+    ] .
