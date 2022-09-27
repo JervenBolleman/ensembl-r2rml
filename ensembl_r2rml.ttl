@@ -8,8 +8,8 @@ PREFIX ensemblexon: <http://rdf.ebi.ac.uk/resource/ensembl.exon/>
 PREFIX ensembl: <http://rdf.ebi.ac.uk/resource/ensembl/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX faldo: <http://biohackathon.org/resource/faldo#>
-PREFIX SO: <http://purl.obolibrary.org/obo/SO_000>
-PREFIX so: <http://purl.obolibrary.org/obo/so#>
+PREFIX SO: <http://purl.obolibrary.org/obo/SO_>
+PREFIX BFO: <http://purl.obolibrary.org/obo/BFO_>
 PREFIX sio: <http://semanticscience.org/resource/>
 PREFIX dc: <http://purl.org/dc/elements/1.1/>
 
@@ -73,7 +73,7 @@ WHERE
     rr:logicalTable [ rr:tableName "transcript" ] ;
     rr:subjectMap [
         rr:template "http://rdf.ebi.ac.uk/resource/ensembl.transcript/{stable_id}" ;
-        rr:class SO:0234
+        rr:class SO:0000234
     ] ;
     rr:predicateObjectMap [
         rr:predicate rdfs:label ;
@@ -88,7 +88,7 @@ WHERE
         rr:objectMap [ rr:template "http://rdf.ebi.ac.uk/terms/ensembl/{biotype}" ; rr:termType rr:IRI ]
 #    ] ;
 #    rr:predicateObjectMap [
-#        rr:predicate so:has_part ;
+#        rr:predicate BFO:0000051 ;
 #        rr:objectMap [
 #            rr:parentTriplesMap <#EnsemblExonTranscript> ;
 #            rr:joinCondition [
@@ -117,7 +117,7 @@ INNER JOIN transcript ON exon_transcript.transcript_id=transcript.transcript_id
         rr:class sio:SIO_001261
     ] ;
     rr:predicateObjectMap [
-        rr:predicate so:SIO_000300 ;
+        rr:predicate sio:SIO_000300 ;
         rr:objectMap [ rr:template "{rank}" ; rr:termType rr:Literal ]
     ] .
 
