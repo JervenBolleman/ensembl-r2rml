@@ -21,13 +21,15 @@ ontop extract-db-metadata -p ensembl_aconthochromis_polyacantus_core_107_1.prope
 
 While developing
 
+e.g. 
+```
+ontop query -d ensembl_aconthochromis_polyacantus_core_107_1.metadata -p ensembl_aconthochromis_polyacantus_core_107_1.properties  -m xref.ttl -q <(echo 'PREFIX up:<http://purl.uniprot.org/core/> PREFIX ensemblterms: <http://rdf.ebi.ac.uk/terms/ensembl/> SELECT ?s WHERE {?s ?p <http://purl.obolibrary.org/obo/SO_0000147>} LIMIT 1')
+
 ```
 
-
-```
-
+While in production -> follow the [nice ontop tutorials ;)](https://ontop-vkg.org/tutorial/endpoint/endpoint-docker.html)
 
 ## Help wanted
 
-This is just a quick start and not complete. Patches and example queries are very welcome.
+This is just a quick start and not complete. Patches and more example queries are very welcome.
 
